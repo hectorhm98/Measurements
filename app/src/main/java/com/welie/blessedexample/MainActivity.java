@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 measurementValue.setText("Scaning");
                 measurementValue2.setText("Stoped");
                 measurementValue3.setText("Stoped");
+                initBluetoothHandler();
                 unregister();
                 BluetoothHandler.getInstance(getApplicationContext());
                 registerReceiver(heartRateDataReceiver, new IntentFilter( "HeartRateMeasurement" ));
@@ -80,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 measurementValue2 = (TextView) findViewById(R.id.pulseoximeterValue);
+                initBluetoothHandler();
                 unregister();
                 measurementValue.setText("Stoped");
                 measurementValue2.setText("Scaning");
@@ -93,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 measurementValue3 = (TextView) findViewById(R.id.ScaleValue);
+                initBluetoothHandler();
                 unregister();
                 measurementValue.setText("Stoped");
                 measurementValue2.setText("Stoped");
@@ -139,14 +142,16 @@ public class MainActivity extends AppCompatActivity {
             BloodPressureMeasurement measurement = (BloodPressureMeasurement) intent.getSerializableExtra("BloodPressure");
             DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
             String formattedTimestamp = df.format(measurement.timestamp);
+            Log.d("DEBUG:", String.valueOf(measurement.systolic));
             measurementValue.setText(String.format(Locale.ENGLISH, "%.0f/%.0f %s, %.0f bpm\n%s", measurement.systolic, measurement.diastolic, measurement.isMMHG ? "mmHg" : "kpa", measurement.pulseRate, formattedTimestamp));
         }
     };
     private final BroadcastReceiver pulseOximeterDataReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            PulseOximeterMeasurement measurement = (PulseOximeterMeasurement) intent.getSerializableExtra("PulseOximeter");
-            measurementValue2.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f \n %s", measurement.spo2, measurement.pulseRate, measurement.timestamp));
+            PulseOximeterMeasurement measurement = (PulseOximeterMeasurement) intent.getSerializableExtra("PulseOximeter1");
+            PulseOximeterMeasurement measurement2 = (PulseOximeterMeasurement) intent.getSerializableExtra("PulseOximeter2");
+            measurementValue2.setText(String.format(Locale.ENGLISH, "SpO2: %d  PR: %d \n %s", measurement.spo2, measurement2.pulseRate, measurement.timestamp));
         }
     };
 
@@ -156,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
             ScaleMeasurement measurement = (ScaleMeasurement) intent.getSerializableExtra("Scale");
             DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
             String formattedTimestamp = df.format(measurement.timestamp);
+            Log.d("DEBUG:", String.valueOf(measurement.weight));
             measurementValue3.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f\n%s", measurement.weight, measurement.bodyFat, formattedTimestamp));
         }
     };

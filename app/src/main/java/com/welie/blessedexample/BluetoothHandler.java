@@ -6,6 +6,7 @@ import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.util.Log;
 
 import com.welie.blessed.BluetoothBytesParser;
 import com.welie.blessed.BluetoothCentral;
@@ -37,8 +38,8 @@ public class BluetoothHandler {
 
     //UUIDs for the PulseOximeterMeasurement (POM)
     private static final UUID POM_SERVICE_UUID = UUID.fromString("0000FF12-0000-1000-8000-00805f9b34fb");
-    private static final UUID PULSE_OXIMETER_MEASUREMENT_WRITE_UUID = UUID.fromString("0000FF01-0000-1000-8000-00805f9b34fb");
-    private static final UUID PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID = UUID.fromString("0000FF02-0000-1000-8000-00805f9b34fb");
+    private static final UUID PULSE_OXIMETER_MEASUREMENT_WRITE_UUID = UUID.fromString("0000ff01-0000-1000-8000-00805f9b34fb");
+    private static final UUID PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID = UUID.fromString("0000ff02-0000-1000-8000-00805f9b34fb");
 
     //UUIDs for the Scale
     private static final UUID SCALE_CUSTOM_SERVICE_UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb"); //CUSTOM SERVICE
@@ -81,6 +82,7 @@ public class BluetoothHandler {
     public boolean POMStatus = false;
     public boolean BPMStatus = false;
     public boolean BSCStatus = false;
+    private Intent pulseoximeterINT = new Intent("OximeterMeasurement");
 
     // Callback for peripherals
     private final BluetoothPeripheralCallback peripheralCallback = new BluetoothPeripheralCallback() {
@@ -126,16 +128,17 @@ public class BluetoothHandler {
             //Turn on notifications for Pulse Oximeter Service
             if(peripheral.getService(POM_SERVICE_UUID) != null) {
                 BluetoothGattCharacteristic acquireDataCharacteristicNotify = peripheral.getCharacteristic(POM_SERVICE_UUID, PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID);
+                Log.d("DEBUG:", String.valueOf(acquireDataCharacteristicNotify.getUuid()));
                 BluetoothGattCharacteristic acquireDataCharacteristicWrite = peripheral.getCharacteristic(POM_SERVICE_UUID, PULSE_OXIMETER_MEASUREMENT_WRITE_UUID);
                 peripheral.setNotify(acquireDataCharacteristicNotify, true);
                 peripheral.setNotify(acquireDataCharacteristicWrite, true);
                 packetNumber = 0;
 
-                if ((acquireDataCharacteristicWrite.getProperties() & PROPERTY_WRITE) > 0) {
+                //if ((acquireDataCharacteristicWrite.getProperties() & PROPERTY_WRITE) > 0) {
                     // Write the desired data
                     byte[] value = new byte[]{(byte) 0x99, 0x00, 0x19};
                     peripheral.writeCharacteristic(acquireDataCharacteristicWrite, value, WRITE_TYPE_NO_RESPONSE);
-                }
+                //}
             }
 
             //Turn on notifications for Scale
@@ -200,6 +203,7 @@ public class BluetoothHandler {
             if (characteristicUUID.equals(BLOOD_PRESSURE_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 BloodPressureMeasurement measurement = new BloodPressureMeasurement(value);
                 Intent intent = new Intent("BluetoothMeasurement");
+                Log.d("DEBUG:", "tensiometro");
                 intent.putExtra("BloodPressure", measurement);
                 context.sendBroadcast(intent);
                 Timber.d("%s", measurement);
@@ -209,17 +213,19 @@ public class BluetoothHandler {
                 boolean isNotifying = peripheral.isNotifying(peripheral.getCharacteristic(POM_SERVICE_UUID,PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID));
                 if(isNotifying) packetNumber++;
                 if(packetNumber == 1) {
+                    Log.d("DEBUG:", String.valueOf(value));
                     PulseOximeterMeasurement measurement = new PulseOximeterMeasurement(value, 1);
-                    Intent intent = new Intent("OximeterMeasurement");
-                    intent.putExtra("PulseOximeter", measurement);
+                    Log.d("DEBUG:", "pulsioximetro");
+                    pulseoximeterINT.putExtra("PulseOximeter1", measurement);
                     //context.sendBroadcast(intent);
                     //Timber.d("%s", measurement);
                 }
                 else if(packetNumber == 2){
+                    Log.d("DEBUG:", "pulsoximetro");
+                    Log.d("DEBUG:", String.valueOf(value));
                     PulseOximeterMeasurement measurement = new PulseOximeterMeasurement(value, 2);
-                    Intent intent = new Intent("OximeterMeasurement");
-                    intent.putExtra("PulseOximeter", measurement);
-                    context.sendBroadcast(intent);
+                    pulseoximeterINT.putExtra("PulseOximeter2", measurement);
+                    context.sendBroadcast(pulseoximeterINT);
                     Timber.d("%s", measurement);
                 }
                 else{
@@ -238,6 +244,7 @@ public class BluetoothHandler {
                 context.sendBroadcast(intent);
                 Timber.d("%s", measurement);
             } else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)){
+                Log.d("DEBUG:", "scale");
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 2);
                 Intent intent = new Intent("ScaleMeasurement");
                 intent.putExtra("ScaleMeasurement", measurement);
