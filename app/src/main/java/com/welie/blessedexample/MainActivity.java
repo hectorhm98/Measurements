@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                 initBluetoothHandler();
                 unregister();
                 BluetoothHandler.getInstance(getApplicationContext());
-                registerReceiver(heartRateDataReceiver, new IntentFilter( "HeartRateMeasurement" ));
+                registerReceiver(bloodPressureDataReceiver, new IntentFilter( "BluetoothMeasurement" ));
             }
         });
 
@@ -158,11 +158,11 @@ public class MainActivity extends AppCompatActivity {
     private final BroadcastReceiver scaleDataReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            ScaleMeasurement measurement = (ScaleMeasurement) intent.getSerializableExtra("Scale");
+            ScaleMeasurement measurement = (ScaleMeasurement) intent.getSerializableExtra("ScaleMeasurement2");
+            ScaleMeasurement measurement2 = (ScaleMeasurement) intent.getSerializableExtra("ScaleMeasurement3");
             DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
             String formattedTimestamp = df.format(measurement.timestamp);
-            Log.d("DEBUG:", String.valueOf(measurement.weight));
-            measurementValue3.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f\n%s", measurement.weight, measurement.bodyFat, formattedTimestamp));
+            measurementValue3.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f\n%s", measurement.weight, measurement2.bodyFat, formattedTimestamp));
         }
     };
 

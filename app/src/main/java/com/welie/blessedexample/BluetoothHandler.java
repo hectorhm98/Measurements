@@ -83,6 +83,8 @@ public class BluetoothHandler {
     public boolean BPMStatus = false;
     public boolean BSCStatus = false;
     private Intent pulseoximeterINT = new Intent("OximeterMeasurement");
+    private Intent scaleINT = new Intent("ScaleMeasurement");
+    private boolean tens = false;
 
     // Callback for peripherals
     private final BluetoothPeripheralCallback peripheralCallback = new BluetoothPeripheralCallback() {
@@ -122,6 +124,7 @@ public class BluetoothHandler {
 
             // Turn on notifications for Blood Pressure Service
             if(peripheral.getService(BLP_SERVICE_UUID) != null) {
+                tens = false;
                 peripheral.setNotify(peripheral.getCharacteristic(BLP_SERVICE_UUID, BLOOD_PRESSURE_MEASUREMENT_CHARACTERISTIC_UUID), true);
             }
 
@@ -201,28 +204,26 @@ public class BluetoothHandler {
             BluetoothBytesParser parser = new BluetoothBytesParser(value);
 
             if (characteristicUUID.equals(BLOOD_PRESSURE_MEASUREMENT_CHARACTERISTIC_UUID)) {
-                BloodPressureMeasurement measurement = new BloodPressureMeasurement(value);
-                Intent intent = new Intent("BluetoothMeasurement");
-                Log.d("DEBUG:", "tensiometro");
-                intent.putExtra("BloodPressure", measurement);
-                context.sendBroadcast(intent);
-                Timber.d("%s", measurement);
-                BPMStatus = true;
+                if(!tens) {
+                    BloodPressureMeasurement measurement = new BloodPressureMeasurement(value);
+                    Intent intent = new Intent("BluetoothMeasurement");
+                    intent.putExtra("BloodPressure", measurement);
+                    context.sendBroadcast(intent);
+                    Timber.d("%s", measurement);
+                    BPMStatus = true;
+                    tens = true;
+                }
             }
             else if(characteristicUUID.equals(PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID)){
                 boolean isNotifying = peripheral.isNotifying(peripheral.getCharacteristic(POM_SERVICE_UUID,PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID));
                 if(isNotifying) packetNumber++;
                 if(packetNumber == 1) {
-                    Log.d("DEBUG:", String.valueOf(value));
                     PulseOximeterMeasurement measurement = new PulseOximeterMeasurement(value, 1);
-                    Log.d("DEBUG:", "pulsioximetro");
                     pulseoximeterINT.putExtra("PulseOximeter1", measurement);
                     //context.sendBroadcast(intent);
                     //Timber.d("%s", measurement);
                 }
                 else if(packetNumber == 2){
-                    Log.d("DEBUG:", "pulsoximetro");
-                    Log.d("DEBUG:", String.valueOf(value));
                     PulseOximeterMeasurement measurement = new PulseOximeterMeasurement(value, 2);
                     pulseoximeterINT.putExtra("PulseOximeter2", measurement);
                     context.sendBroadcast(pulseoximeterINT);
@@ -239,22 +240,18 @@ public class BluetoothHandler {
 
             else if(characteristicUUID.equals(USER_CONTROL_POINT_CHARACTERISTIC_UUID)){
                 ScaleMeasurement measurement = new ScaleMeasurement(value,1);
-                Intent intent = new Intent("ScaleMeasurement");
-                intent.putExtra("ScaleMeasurement", measurement);
-                context.sendBroadcast(intent);
-                Timber.d("%s", measurement);
+                scaleINT.putExtra("ScaleMeasurement1", measurement);
+                /*context.sendBroadcast(scaleINT);
+                Timber.d("%s", measurement);*/
             } else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)){
-                Log.d("DEBUG:", "scale");
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 2);
-                Intent intent = new Intent("ScaleMeasurement");
-                intent.putExtra("ScaleMeasurement", measurement);
-                context.sendBroadcast(intent);
-                Timber.d("%s", measurement);
+                scaleINT.putExtra("ScaleMeasurement2", measurement);
+                /*context.sendBroadcast(scaleINT);
+                Timber.d("%s", measurement);*/
             }else if (characteristicUUID.equals(BODY_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 3);
-                Intent intent = new Intent("ScaleMeasurement");
-                intent.putExtra("ScaleMeasurement", measurement);
-                context.sendBroadcast(intent);
+                scaleINT.putExtra("ScaleMeasurement", measurement);
+                context.sendBroadcast(scaleINT);
                 Timber.d("%s", measurement);
                 BSCStatus = true;
             }
