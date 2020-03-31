@@ -22,6 +22,7 @@ import timber.log.Timber;
 import static android.bluetooth.BluetoothGatt.CONNECTION_PRIORITY_HIGH;
 import static android.bluetooth.BluetoothGattCharacteristic.PROPERTY_WRITE;
 import static android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT;
+import static android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE;
 import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT16;
 import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT8;
 import static com.welie.blessed.BluetoothBytesParser.bytes2String;
@@ -33,6 +34,21 @@ public class BluetoothHandler {
     // UUIDs for the Blood Pressure service (BLP)
     private static final UUID BLP_SERVICE_UUID = UUID.fromString("00001810-0000-1000-8000-00805f9b34fb");
     private static final UUID BLOOD_PRESSURE_MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A35-0000-1000-8000-00805f9b34fb");
+
+    //UUIDs for the PulseOximeterMeasurement (POM)
+    private static final UUID POM_SERVICE_UUID = UUID.fromString("0000FF12-0000-1000-8000-00805f9b34fb");
+    private static final UUID PULSE_OXIMETER_MEASUREMENT_WRITE_UUID = UUID.fromString("0000FF01-0000-1000-8000-00805f9b34fb");
+    private static final UUID PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID = UUID.fromString("0000FF02-0000-1000-8000-00805f9b34fb");
+
+    //UUIDs for the Scale
+    private static final UUID SCALE_CUSTOM_SERVICE_UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb"); //CUSTOM SERVICE
+    private static final UUID TAKE_MEASUREMENT_UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb");
+    private static final UUID WEIGHT_SERVICE_UUID = UUID.fromString("0000181D-0000-1000-8000-00805f9b34fb"); //WEIGHT SERVICE
+    private static final UUID WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A9D-0000-1000-8000-00805f9b34fb");
+    private static final UUID BODY_SERVICE_UUID = UUID.fromString("0000181B-0000-1000-8000-00805f9b34fb"); //BODY SERVICE
+    private static final UUID BODY_MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A9C-0000-1000-8000-00805f9b34fb");
+    private static final UUID USER_DATA_SERVICE_UUID = UUID.fromString("0000181c-0000-1000-8000-00805f9b34fb"); //USER DATA SERVICE
+    private static final UUID USER_CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002A9F-0000-1000-8000-00805f9b34fb");
 
     // UUIDs for the Health Thermometer service (HTS)
     private static final UUID HTS_SERVICE_UUID = UUID.fromString("00001809-0000-1000-8000-00805f9b34fb");
@@ -61,6 +77,10 @@ public class BluetoothHandler {
     private Context context;
     private Handler handler = new Handler();
     private int currentTimeCounter = 0;
+    private int packetNumber = 0;
+    public boolean POMStatus = false;
+    public boolean BPMStatus = false;
+    public boolean BSCStatus = false;
 
     // Callback for peripherals
     private final BluetoothPeripheralCallback peripheralCallback = new BluetoothPeripheralCallback() {
@@ -101,6 +121,41 @@ public class BluetoothHandler {
             // Turn on notifications for Blood Pressure Service
             if(peripheral.getService(BLP_SERVICE_UUID) != null) {
                 peripheral.setNotify(peripheral.getCharacteristic(BLP_SERVICE_UUID, BLOOD_PRESSURE_MEASUREMENT_CHARACTERISTIC_UUID), true);
+            }
+
+            //Turn on notifications for Pulse Oximeter Service
+            if(peripheral.getService(POM_SERVICE_UUID) != null) {
+                BluetoothGattCharacteristic acquireDataCharacteristicNotify = peripheral.getCharacteristic(POM_SERVICE_UUID, PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID);
+                BluetoothGattCharacteristic acquireDataCharacteristicWrite = peripheral.getCharacteristic(POM_SERVICE_UUID, PULSE_OXIMETER_MEASUREMENT_WRITE_UUID);
+                peripheral.setNotify(acquireDataCharacteristicNotify, true);
+                peripheral.setNotify(acquireDataCharacteristicWrite, true);
+                packetNumber = 0;
+
+                if ((acquireDataCharacteristicWrite.getProperties() & PROPERTY_WRITE) > 0) {
+                    // Write the desired data
+                    byte[] value = new byte[]{(byte) 0x99, 0x00, 0x19};
+                    peripheral.writeCharacteristic(acquireDataCharacteristicWrite, value, WRITE_TYPE_NO_RESPONSE);
+                }
+            }
+
+            //Turn on notifications for Scale
+            if(peripheral.getService(USER_DATA_SERVICE_UUID) != null){
+                peripheral.setNotify(peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID), true);
+                BluetoothGattCharacteristic userControlPointWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID,USER_CONTROL_POINT_CHARACTERISTIC_UUID);
+                byte[] value = new byte[]{(byte) 0x02, 0X01, 0x00, 0X00}; //CONSENT CODE
+                peripheral.writeCharacteristic(userControlPointWrite, value, WRITE_TYPE_DEFAULT);
+            }
+            if(peripheral.getService(SCALE_CUSTOM_SERVICE_UUID) != null) {
+                BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
+                byte[] value = new byte[] {0x00};
+                peripheral.writeCharacteristic(takeMeasurementWrite, value, WRITE_TYPE_DEFAULT);
+            }
+
+            if(peripheral.getService(WEIGHT_SERVICE_UUID) != null){
+                peripheral.setNotify(peripheral.getCharacteristic(WEIGHT_SERVICE_UUID, WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID), true);
+            }
+            if(peripheral.getService(BODY_SERVICE_UUID) != null){
+                peripheral.setNotify(peripheral.getCharacteristic(BODY_SERVICE_UUID,BODY_MEASUREMENT_CHARACTERISTIC_UUID),true);
             }
 
             // Turn on notification for Health Thermometer Service
@@ -148,47 +203,90 @@ public class BluetoothHandler {
                 intent.putExtra("BloodPressure", measurement);
                 context.sendBroadcast(intent);
                 Timber.d("%s", measurement);
+                BPMStatus = true;
             }
-            else if(characteristicUUID.equals(TEMPERATURE_MEASUREMENT_CHARACTERISTIC_UUID)) {
+            else if(characteristicUUID.equals(PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID)){
+                boolean isNotifying = peripheral.isNotifying(peripheral.getCharacteristic(POM_SERVICE_UUID,PULSE_OXIMETER_MEASUREMENT_NOTIFY_UUID));
+                if(isNotifying) packetNumber++;
+                if(packetNumber == 1) {
+                    PulseOximeterMeasurement measurement = new PulseOximeterMeasurement(value, 1);
+                    Intent intent = new Intent("OximeterMeasurement");
+                    intent.putExtra("PulseOximeter", measurement);
+                    //context.sendBroadcast(intent);
+                    //Timber.d("%s", measurement);
+                }
+                else if(packetNumber == 2){
+                    PulseOximeterMeasurement measurement = new PulseOximeterMeasurement(value, 2);
+                    Intent intent = new Intent("OximeterMeasurement");
+                    intent.putExtra("PulseOximeter", measurement);
+                    context.sendBroadcast(intent);
+                    Timber.d("%s", measurement);
+                }
+                else{
+                    BluetoothGattCharacteristic acquireDataCharacteristicWrite = peripheral.getCharacteristic(POM_SERVICE_UUID, PULSE_OXIMETER_MEASUREMENT_WRITE_UUID);
+                    byte[] valus = new byte[]{(byte) 0x99, 0x7F, 0x18};
+                    peripheral.writeCharacteristic(acquireDataCharacteristicWrite, valus, WRITE_TYPE_NO_RESPONSE);
+                    packetNumber = 0;
+                }
+                POMStatus = true;
+            }
+
+            else if(characteristicUUID.equals(USER_CONTROL_POINT_CHARACTERISTIC_UUID)){
+                ScaleMeasurement measurement = new ScaleMeasurement(value,1);
+                Intent intent = new Intent("ScaleMeasurement");
+                intent.putExtra("ScaleMeasurement", measurement);
+                context.sendBroadcast(intent);
+                Timber.d("%s", measurement);
+            } else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)){
+                ScaleMeasurement measurement = new ScaleMeasurement(value, 2);
+                Intent intent = new Intent("ScaleMeasurement");
+                intent.putExtra("ScaleMeasurement", measurement);
+                context.sendBroadcast(intent);
+                Timber.d("%s", measurement);
+            }else if (characteristicUUID.equals(BODY_MEASUREMENT_CHARACTERISTIC_UUID)) {
+                ScaleMeasurement measurement = new ScaleMeasurement(value, 3);
+                Intent intent = new Intent("ScaleMeasurement");
+                intent.putExtra("ScaleMeasurement", measurement);
+                context.sendBroadcast(intent);
+                Timber.d("%s", measurement);
+                BSCStatus = true;
+            }
+
+            else if (characteristicUUID.equals(TEMPERATURE_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 TemperatureMeasurement measurement = new TemperatureMeasurement(value);
                 Intent intent = new Intent("TemperatureMeasurement");
                 intent.putExtra("Temperature", measurement);
                 context.sendBroadcast(intent);
                 Timber.d("%s", measurement);
-            }
-            else if(characteristicUUID.equals(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID)) {
-               HeartRateMeasurement measurement = new HeartRateMeasurement(value);
+            } else if (characteristicUUID.equals(HEARTRATE_MEASUREMENT_CHARACTERISTIC_UUID)) {
+                HeartRateMeasurement measurement = new HeartRateMeasurement(value);
                 Intent intent = new Intent("HeartRateMeasurement");
                 intent.putExtra("HeartRate", measurement);
                 context.sendBroadcast(intent);
                 Timber.d("%s", measurement);
-            }
-            else if(characteristicUUID.equals(CURRENT_TIME_CHARACTERISTIC_UUID)) {
+            } else if (characteristicUUID.equals(CURRENT_TIME_CHARACTERISTIC_UUID)) {
                 Date currentTime = parser.getDateTime();
                 Timber.i("Received device time: %s", currentTime);
 
                 // Deal with Omron devices where we can only write currentTime under specific conditions
-                if(peripheral.getName().contains("BLEsmart_")) {
+                if (peripheral.getName().contains("BLEsmart_")) {
                     boolean isNotifying = peripheral.isNotifying(peripheral.getCharacteristic(BLP_SERVICE_UUID, BLOOD_PRESSURE_MEASUREMENT_CHARACTERISTIC_UUID));
-                    if(isNotifying) currentTimeCounter++;
+                    if (isNotifying) currentTimeCounter++;
 
                     // We can set device time for Omron devices only if it is the first notification and currentTime is more than 10 min from now
                     long interval = abs(Calendar.getInstance().getTimeInMillis() - currentTime.getTime());
-                    if (currentTimeCounter == 1 && interval > 10*60*1000) {
+                    if (currentTimeCounter == 1 && interval > 10 * 60 * 1000) {
                         parser.setCurrentTime(Calendar.getInstance());
                         peripheral.writeCharacteristic(characteristic, parser.getValue(), WRITE_TYPE_DEFAULT);
                     }
                 }
-            }
-            else if(characteristicUUID.equals(BATTERY_LEVEL_CHARACTERISTIC_UUID)) {
+            } else if (characteristicUUID.equals(BATTERY_LEVEL_CHARACTERISTIC_UUID)) {
                 int batteryLevel = parser.getIntValue(FORMAT_UINT8);
                 Timber.i("Received battery level %d%%", batteryLevel);
-            }
-            else if(characteristicUUID.equals(MANUFACTURER_NAME_CHARACTERISTIC_UUID)) {
+            } else if (characteristicUUID.equals(MANUFACTURER_NAME_CHARACTERISTIC_UUID)) {
                 String manufacturer = parser.getStringValue(0);
                 Timber.i("Received manufacturer: %s", manufacturer);
-            }
-            else if(characteristicUUID.equals(MODEL_NUMBER_CHARACTERISTIC_UUID)) {
+            } else if (characteristicUUID.equals(MODEL_NUMBER_CHARACTERISTIC_UUID)) {
                 String modelNumber = parser.getStringValue(0);
                 Timber.i("Received modelnumber: %s", modelNumber);
             }
@@ -235,7 +333,7 @@ public class BluetoothHandler {
                 // Bluetooth is on now, start scanning again
                 // Scan for peripherals with a certain service UUIDs
                 central.startPairingPopupHack();
-                central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, HTS_SERVICE_UUID, HRS_SERVICE_UUID});
+                central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, POM_SERVICE_UUID, USER_DATA_SERVICE_UUID});
             }
         }
     };
@@ -255,6 +353,6 @@ public class BluetoothHandler {
 
         // Scan for peripherals with a certain service UUIDs
         central.startPairingPopupHack();
-        central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, HTS_SERVICE_UUID, HRS_SERVICE_UUID});
+        central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, POM_SERVICE_UUID, USER_DATA_SERVICE_UUID});
     }
 }

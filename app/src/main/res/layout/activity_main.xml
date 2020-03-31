@@ -18,4 +18,35 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/tensbtn"
+        android:layout_width="149dp"
+        android:layout_height="47dp"
+        android:layout_marginTop="116dp"
+        android:text="Tensiometer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.542"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/pobtn"
+        android:layout_width="148dp"
+        android:layout_height="43dp"
+        android:text="PulseOximeter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.542"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tensbtn" />
+
+    <Button
+        android:id="@+id/sclbtn"
+        android:layout_width="149dp"
+        android:layout_height="47dp"
+        android:text="Scale"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.541"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/pobtn" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

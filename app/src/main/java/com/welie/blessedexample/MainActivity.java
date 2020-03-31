@@ -12,6 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.text.DateFormat;
@@ -26,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView measurementValue;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int ACCESS_LOCATION_REQUEST = 2;
+    boolean BPMStatus;
+    boolean POMStatus;
+    boolean BSCStatus;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+        Button tensiometer = (Button) findViewById(R.id.tensbtn);
+        Button pulseOximeter = (Button) findViewById(R.id.pobtn);
+        Button scale = (Button) findViewById(R.id.sclbtn);
 
         BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if(bluetoothAdapter == null) return;
@@ -46,10 +55,31 @@ public class MainActivity extends AppCompatActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
         }
-
         if(hasPermissions()) {
             initBluetoothHandler();
         }
+
+        tensiometer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+            }
+        });
+
+        pulseOximeter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+            }
+        });
+
+        scale.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+            }
+        });
+
     }
     private void initBluetoothHandler()
     {
@@ -57,12 +87,20 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(bloodPressureDataReceiver, new IntentFilter( "BluetoothMeasurement" ));
         registerReceiver(temperatureDataReceiver, new IntentFilter( "TemperatureMeasurement" ));
         registerReceiver(heartRateDataReceiver, new IntentFilter( "HeartRateMeasurement" ));
+        registerReceiver(pulseOximeterDataReceiver, new IntentFilter("OximeterMeasurement"));
+        registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(bloodPressureDataReceiver);
+        unregisterReceiver(temperatureDataReceiver);
+        unregisterReceiver(heartRateDataReceiver);
+        unregisterReceiver(pulseOximeterDataReceiver);
+        unregisterReceiver(scaleDataReceiver);
+
     }
 
     private final BroadcastReceiver bloodPressureDataReceiver = new BroadcastReceiver() {
@@ -74,6 +112,24 @@ public class MainActivity extends AppCompatActivity {
             measurementValue.setText(String.format(Locale.ENGLISH, "%.0f/%.0f %s, %.0f bpm\n%s", measurement.systolic, measurement.diastolic, measurement.isMMHG ? "mmHg" : "kpa", measurement.pulseRate, formattedTimestamp));
         }
     };
+    private final BroadcastReceiver pulseOximeterDataReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            PulseOximeterMeasurement measurement = (PulseOximeterMeasurement) intent.getSerializableExtra("PulseOximeter");
+            measurementValue.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f \n %s", measurement.spo2, measurement.pulseRate, measurement.timestamp));
+        }
+    };
+
+    private final BroadcastReceiver scaleDataReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ScaleMeasurement measurement = (ScaleMeasurement) intent.getSerializableExtra("Scale");
+            DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
+            String formattedTimestamp = df.format(measurement.timestamp);
+            measurementValue.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f\n%s", measurement.weight, measurement.bodyFat, formattedTimestamp));
+        }
+    };
+
 
     private final BroadcastReceiver temperatureDataReceiver = new BroadcastReceiver() {
         @Override

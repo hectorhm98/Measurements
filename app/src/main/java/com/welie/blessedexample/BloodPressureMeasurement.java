@@ -3,6 +3,7 @@ package com.welie.blessedexample;
 import com.welie.blessed.BluetoothBytesParser;
 
 import java.io.Serializable;
+import java.nio.ByteOrder;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -45,17 +46,16 @@ public class BloodPressureMeasurement implements Serializable {
 
         // Read pulse rate
         if (pulseRatePresent) {
-            pulseRate = parser.getFloatValue(FORMAT_SFLOAT);
+            pulseRate = parser.getFloatValue(FORMAT_SFLOAT, ByteOrder.BIG_ENDIAN);
         }
 
         // Read userId
-        if (userIdPresent) {
-            userID = parser.getIntValue(FORMAT_UINT8);
-        }
+        userID = parser.getIntValue(FORMAT_UINT8);
+
     }
 
     @Override
     public String toString() {
-        return String.format(Locale.ENGLISH,"%.0f/%.0f %s, MAP %.0f, %.0f bpm, user %d at (%s)", systolic, diastolic, isMMHG ? "mmHg" : "kPa", meanArterialPressure, pulseRate, userID, timestamp);
+        return String.format(Locale.ENGLISH,"%.0f/%.0f %s, %.0f bpm, user %d at (%s)", systolic, diastolic, isMMHG ? "mmHg" : "kPa", pulseRate, userID, timestamp);
     }
 }
