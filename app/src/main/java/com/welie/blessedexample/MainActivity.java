@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
     private final String TAG = MainActivity.class.getSimpleName();
     private TextView measurementValue;
+    private TextView measurementValue2;
+    private TextView measurementValue3;
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int ACCESS_LOCATION_REQUEST = 2;
     boolean BPMStatus;
@@ -44,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+        measurementValue2 = (TextView) findViewById(R.id.pulseoximeterValue);
+        measurementValue3 = (TextView) findViewById(R.id.ScaleValue);
         Button tensiometer = (Button) findViewById(R.id.tensbtn);
         Button pulseOximeter = (Button) findViewById(R.id.pobtn);
         Button scale = (Button) findViewById(R.id.sclbtn);
@@ -63,20 +67,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+                measurementValue.setText("Scaning");
+                measurementValue2.setText("Stoped");
+                measurementValue3.setText("Stoped");
+                unregister();
+                BluetoothHandler.getInstance(getApplicationContext());
+                registerReceiver(heartRateDataReceiver, new IntentFilter( "HeartRateMeasurement" ));
             }
         });
 
         pulseOximeter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+                measurementValue2 = (TextView) findViewById(R.id.pulseoximeterValue);
+                unregister();
+                measurementValue.setText("Stoped");
+                measurementValue2.setText("Scaning");
+                measurementValue3.setText("Stoped");
+                BluetoothHandler.getInstance(getApplicationContext());
+                registerReceiver(pulseOximeterDataReceiver, new IntentFilter("OximeterMeasurement"));
             }
         });
 
         scale.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
+                measurementValue3 = (TextView) findViewById(R.id.ScaleValue);
+                unregister();
+                measurementValue.setText("Stoped");
+                measurementValue2.setText("Stoped");
+                measurementValue3.setText("Scaning");
+                BluetoothHandler.getInstance(getApplicationContext());
+                registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
             }
         });
 
@@ -90,6 +112,14 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(pulseOximeterDataReceiver, new IntentFilter("OximeterMeasurement"));
         registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
 
+    }
+
+    private void unregister() {
+        unregisterReceiver(bloodPressureDataReceiver);
+        unregisterReceiver(temperatureDataReceiver);
+        unregisterReceiver(heartRateDataReceiver);
+        unregisterReceiver(pulseOximeterDataReceiver);
+        unregisterReceiver(scaleDataReceiver);
     }
 
     @Override
@@ -116,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             PulseOximeterMeasurement measurement = (PulseOximeterMeasurement) intent.getSerializableExtra("PulseOximeter");
-            measurementValue.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f \n %s", measurement.spo2, measurement.pulseRate, measurement.timestamp));
+            measurementValue2.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f \n %s", measurement.spo2, measurement.pulseRate, measurement.timestamp));
         }
     };
 
@@ -126,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
             ScaleMeasurement measurement = (ScaleMeasurement) intent.getSerializableExtra("Scale");
             DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.ENGLISH);
             String formattedTimestamp = df.format(measurement.timestamp);
-            measurementValue.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f\n%s", measurement.weight, measurement.bodyFat, formattedTimestamp));
+            measurementValue3.setText(String.format(Locale.ENGLISH, "SpO2: %.0f  PR: %.0f\n%s", measurement.weight, measurement.bodyFat, formattedTimestamp));
         }
     };
 
