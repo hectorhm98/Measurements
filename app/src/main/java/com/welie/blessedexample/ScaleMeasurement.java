@@ -16,7 +16,7 @@ import static com.welie.blessed.BluetoothPeripheral.GATT_SUCCESS;
 
 
 public class ScaleMeasurement implements Serializable {
-<<<<<<< HEAD
+
     public int opCode;
     public int userIndex;
     public int initials;
@@ -30,8 +30,6 @@ public class ScaleMeasurement implements Serializable {
     public String sgender;
     public int activityLevel;
 
-=======
->>>>>>> origin/master
     public int responseOPCode;
     public int requestOPCode;
     public int responseValue;
@@ -54,7 +52,6 @@ public class ScaleMeasurement implements Serializable {
     public ScaleMeasurement(byte[] value, int step) {
         BluetoothBytesParser parser = new BluetoothBytesParser(value);
         switch(step){
-<<<<<<< HEAD
             case(0):
                 opCode = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
                 userIndex = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
@@ -74,9 +71,7 @@ public class ScaleMeasurement implements Serializable {
                     sgender = "Non specified";
                 }
                 activityLevel = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
-
-=======
->>>>>>> origin/master
+                break;
             case(1):
                 responseOPCode = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
                 requestOPCode = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
@@ -86,10 +81,9 @@ public class ScaleMeasurement implements Serializable {
                 }else{
                     return; //Something went wrong
                 }
-<<<<<<< HEAD
+
                 break;
-=======
->>>>>>> origin/master
+
 
             case(2):
                 flags = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
@@ -98,10 +92,9 @@ public class ScaleMeasurement implements Serializable {
                 userID = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
                 BMI = parser.getFloatValue(BluetoothBytesParser.FORMAT_SFLOAT, ByteOrder.LITTLE_ENDIAN);
                 height = parser.getFloatValue(BluetoothBytesParser.FORMAT_SFLOAT, ByteOrder.LITTLE_ENDIAN);
-<<<<<<< HEAD
+
                 break;
-=======
->>>>>>> origin/master
+
 
             case(3):
                 flags = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
@@ -111,10 +104,8 @@ public class ScaleMeasurement implements Serializable {
                 softLeanMass = parser.getFloatValue(BluetoothBytesParser.FORMAT_SFLOAT, ByteOrder.LITTLE_ENDIAN);
                 bodyWaterMass = parser.getFloatValue(BluetoothBytesParser.FORMAT_SFLOAT,ByteOrder.LITTLE_ENDIAN);
                 impedance = parser.getFloatValue(BluetoothBytesParser.FORMAT_SFLOAT, ByteOrder.LITTLE_ENDIAN);
-<<<<<<< HEAD
+
                 break;
-=======
->>>>>>> origin/master
         }
     }
     @Override
