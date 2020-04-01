@@ -6,6 +6,10 @@ import java.io.Serializable;
 import java.nio.ByteOrder;
 import java.util.Calendar;
 import java.util.Date;
+<<<<<<< HEAD
+=======
+import android.util.Log;
+>>>>>>> origin/master
 import java.util.Locale;
 import android.bluetooth.BluetoothGattCharacteristic;
 import com.welie.blessed.BluetoothPeripheral;
@@ -75,11 +79,18 @@ public class PulseOximeterMeasurement implements Serializable
                 pulseRateMin = parser.getIntValue(FORMAT_UINT8);
                 pulseRate = parser.getIntValue(FORMAT_UINT8);
                 checksum = parser.getIntValue(FORMAT_UINT8);
+<<<<<<< HEAD
                 break;
         }
 
 
 
+=======
+                Log.d("Debug", String.valueOf(pulseRate));
+                break;
+        }
+
+>>>>>>> origin/master
         timestampHour = hourIni + "" + ":" + minuteIni + "" + ":" + secondIni + "";
         timestampDay = dayIni + "" + "/" + monthIni + "" + "/" + yearIni + "";
         timestamp = Calendar.getInstance().getTime();
@@ -87,7 +98,11 @@ public class PulseOximeterMeasurement implements Serializable
     @Override
     public String toString()
     {
+<<<<<<< HEAD
         return String.format(Locale.ENGLISH,"%.0f/%.0f at %s", spo2, pulseRate,timestamp);
+=======
+        return String.format(Locale.ENGLISH,"%d/%d at %s", spo2, pulseRate,timestamp);
+>>>>>>> origin/master
 
     }
 }
