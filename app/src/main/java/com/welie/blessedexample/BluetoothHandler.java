@@ -151,7 +151,9 @@ public class BluetoothHandler {
                 byte[] value = new byte[]{(byte) 0x02, 0X01, 0x00, 0X00}; //CONSENT CODE
                 peripheral.writeCharacteristic(userControlPointWrite, value, WRITE_TYPE_DEFAULT);
             }
+            Log.d("DEBUG:", peripheral.getName());
             if(peripheral.getService(SCALE_CUSTOM_SERVICE_UUID) != null) {
+                Log.d("DEBUG:", "SCALE");
                 BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
                 byte[] value = new byte[] {0x00};
                 peripheral.writeCharacteristic(takeMeasurementWrite, value, WRITE_TYPE_DEFAULT);
@@ -337,7 +339,7 @@ public class BluetoothHandler {
                 // Bluetooth is on now, start scanning again
                 // Scan for peripherals with a certain service UUIDs
                 central.startPairingPopupHack();
-                central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, POM_SERVICE_UUID, USER_DATA_SERVICE_UUID});
+                central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, POM_SERVICE_UUID, USER_DATA_SERVICE_UUID, WEIGHT_SERVICE_UUID});
             }
         }
     };
@@ -357,6 +359,6 @@ public class BluetoothHandler {
 
         // Scan for peripherals with a certain service UUIDs
         central.startPairingPopupHack();
-        central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, POM_SERVICE_UUID, USER_DATA_SERVICE_UUID});
+        central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, POM_SERVICE_UUID, USER_DATA_SERVICE_UUID, WEIGHT_SERVICE_UUID});
     }
 }
