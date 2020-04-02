@@ -156,7 +156,7 @@ public class BluetoothHandler {
             if(peripheral.getService(USER_DATA_SERVICE_UUID) != null){
                 peripheral.setNotify(peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID), true);
                 BluetoothGattCharacteristic userControlPointWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID,USER_CONTROL_POINT_CHARACTERISTIC_UUID);
-                byte[] value = new byte[]{(byte) 0x02, 0X01/*USER INDEX*/, 0x00, 0X00};
+                byte[] value = new byte[]{(byte) 0x02, 0X01/*USER INDEX*/, 0x00, 0X00}; //CONSENT CODE
                 peripheral.writeCharacteristic(userControlPointWrite, value, WRITE_TYPE_DEFAULT);
             }
             Log.d("DEBUG:", peripheral.getName());
@@ -259,23 +259,6 @@ public class BluetoothHandler {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 0);
                 scaleINT.putExtra("ScaleMeasurement0", measurement);
                 context.sendBroadcast(scaleINT);
-            }
-            else if(characteristicUUID.equals(USER_CONTROL_POINT_CHARACTERISTIC_UUID)){
-                ScaleMeasurement measurement = new ScaleMeasurement(value,1);
-                scaleINT.putExtra("ScaleMeasurement1", measurement);
-                /*context.sendBroadcast(scaleINT);
-                Timber.d("%s", measurement);*/
-            } else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)){
-                ScaleMeasurement measurement = new ScaleMeasurement(value, 2);
-                scaleINT.putExtra("ScaleMeasurement2", measurement);
-                /*context.sendBroadcast(scaleINT);
-                Timber.d("%s", measurement);*/
-            }else if (characteristicUUID.equals(BODY_MEASUREMENT_CHARACTERISTIC_UUID)) {
-                ScaleMeasurement measurement = new ScaleMeasurement(value, 3);
-                scaleINT.putExtra("ScaleMeasurement", measurement);
-                context.sendBroadcast(scaleINT);
-                Timber.d("%s", measurement);
-                BSCStatus = true;
             }
 
             else if (characteristicUUID.equals(TEMPERATURE_MEASUREMENT_CHARACTERISTIC_UUID)) {

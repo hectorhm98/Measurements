@@ -26,7 +26,7 @@ public class ScaleActivity extends AppCompatActivity {
     private ArrayAdapter<String> arrayAdapter;
     private EditText consentCode;
     private String stringCode;
-    private byte cnstCode[];
+    private byte[] cnstCode;
     private int userID;
     byte[] result = new byte[4];
 
@@ -65,8 +65,8 @@ public class ScaleActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 consentCode = (EditText) findViewById(R.id.cnstCode);
-                stringCode = Integer.toHexString(3333);
-                cnstCode = stringCode.getBytes();
+                stringCode = "0x"+ Integer.toHexString(3333);
+                cnstCode = getByteArray(3333);
 
                 userID = position;
                 Intent sclINT = new Intent("userControlPoint");
@@ -74,6 +74,18 @@ public class ScaleActivity extends AppCompatActivity {
                 sclINT.putExtra("userID", userID);
             }
         });
+    }
+
+    private byte[] getByteArray(int x) {
+        int i;
+        byte[] b = new byte[4];
+        for (i = 3; i > 0; i--) {
+            float y = (float) x;
+            float c = (y / 16 - x / 16) * 16;
+            b[i] = (byte) c;
+            x = x / 16;
+        }
+        return b;
     }
 
     private final BroadcastReceiver scaleDataReceiver = new BroadcastReceiver() {
