@@ -7,8 +7,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import com.welie.blessed.BluetoothBytesParser;
 import com.welie.blessed.BluetoothCentral;
@@ -92,6 +95,7 @@ public class BluetoothHandler {
 
     // Callback for peripherals
     private final BluetoothPeripheralCallback peripheralCallback = new BluetoothPeripheralCallback() {
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         public void onServicesDiscovered(BluetoothPeripheral peripheral) {
             Timber.i("discovered services");
@@ -158,12 +162,13 @@ public class BluetoothHandler {
             Log.d("DEBUG:", peripheral.getName());
             if(peripheral.getService(SCALE_CUSTOM_SERVICE_UUID) != null) {
 
-
+                peripheral.setNotify(peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, USER_LIST_UUID), true);
                 BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
                 BluetoothGattCharacteristic userListWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, USER_LIST_UUID);
                 byte[] value = new byte[] {0x00};
                 peripheral.writeCharacteristic(takeMeasurementWrite, value, WRITE_TYPE_DEFAULT);
                 peripheral.writeCharacteristic(userListWrite, value, WRITE_TYPE_DEFAULT);
+                Log.d("Scale", "He escrito");
 
             }
 
@@ -185,6 +190,7 @@ public class BluetoothHandler {
             }
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         public void onNotificationStateUpdate(BluetoothPeripheral peripheral, BluetoothGattCharacteristic characteristic, int status) {
             if( status == GATT_SUCCESS) {
@@ -207,6 +213,7 @@ public class BluetoothHandler {
             }
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         public void onCharacteristicUpdate(BluetoothPeripheral peripheral, byte[] value, BluetoothGattCharacteristic characteristic, int status) {
             if(status != GATT_SUCCESS) return;
@@ -248,6 +255,7 @@ public class BluetoothHandler {
                 POMStatus = true;
             }
             else if(characteristicUUID.equals(USER_LIST_UUID)){
+                Log.d("Scale", "Paso");
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 0);
                 scaleINT.putExtra("ScaleMeasurement0", measurement);
                 context.sendBroadcast(scaleINT);
@@ -362,6 +370,13 @@ public class BluetoothHandler {
         }
         return instance;
     }
+
+
+    public static synchronized BluetoothHandler SiguientePaso(Context context) {
+            instance = new BluetoothHandler(context.getApplicationContext());
+            return instance;
+    }
+
 
     private BluetoothHandler(Context context) {
         this.context = context;

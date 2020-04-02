@@ -105,8 +105,8 @@ public class MainActivity extends AppCompatActivity {
                 measurementValue.setText("Stoped");
                 measurementValue2.setText("Stoped");
                 measurementValue3.setText("Scaning");
-                BluetoothHandler.getInstance(getApplicationContext());
-                registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
+                //BluetoothHandler.getInstance(getApplicationContext());
+                //registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
                 Intent intent = new Intent(MainActivity.this, ScaleActivity.class);
                 startActivity(intent);
             }
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initBluetoothHandler()
     {
-        BluetoothHandler.getInstance(getApplicationContext());
+        //BluetoothHandler.getInstance(getApplicationContext());
         registerReceiver(bloodPressureDataReceiver, new IntentFilter( "BluetoothMeasurement" ));
         registerReceiver(temperatureDataReceiver, new IntentFilter( "TemperatureMeasurement" ));
         registerReceiver(heartRateDataReceiver, new IntentFilter( "HeartRateMeasurement" ));
