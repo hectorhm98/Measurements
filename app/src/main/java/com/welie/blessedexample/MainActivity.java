@@ -18,9 +18,12 @@ import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.FormatFlagsConversionMismatchException;
 import java.util.Locale;
 
 import timber.log.Timber;
+
+import static android.bluetooth.BluetoothGattCharacteristic.FORMAT_UINT32;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -97,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
                 measurementValue3 = (TextView) findViewById(R.id.ScaleValue);
                 initBluetoothHandler();
                 unregister();
+                String a = String.format("%04X", 3333);
+                Log.d("IntToHexInt", a);
                 measurementValue.setText("Stoped");
                 measurementValue2.setText("Stoped");
                 measurementValue3.setText("Scaning");
@@ -104,8 +109,10 @@ public class MainActivity extends AppCompatActivity {
                 registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
             }
         });
-
     }
+
+
+
     private void initBluetoothHandler()
     {
         BluetoothHandler.getInstance(getApplicationContext());
