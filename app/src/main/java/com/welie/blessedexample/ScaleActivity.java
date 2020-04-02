@@ -26,6 +26,7 @@ public class ScaleActivity extends AppCompatActivity {
     private ArrayAdapter<String> arrayAdapter;
     private EditText consentCode;
     private String stringCode;
+    private BluetoothHandler bh;
     private byte cnstCode[];
     private int userID;
     byte[] result = new byte[4];
@@ -36,7 +37,7 @@ public class ScaleActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scale);
 
         userList = (ListView) findViewById(R.id.userList);
-        BluetoothHandler.getInstance(getApplicationContext());
+        bh = BluetoothHandler.getInstance(getApplicationContext());
         registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
         users = new ArrayList<String>();
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, users);
@@ -48,7 +49,7 @@ public class ScaleActivity extends AppCompatActivity {
                 consentCode = (EditText) findViewById(R.id.cnstCode);
                 stringCode = Integer.toHexString(3333);
                 cnstCode = stringCode.getBytes();
-
+                byte p[] = intToByteArray(4);
                 userID = position;
                 Intent sclINT = new Intent("userControlPoint");
                 sclINT.putExtra("ConsentCode", cnstCode);
@@ -67,11 +68,13 @@ public class ScaleActivity extends AppCompatActivity {
                 consentCode = (EditText) findViewById(R.id.cnstCode);
                 stringCode = Integer.toHexString(3333);
                 cnstCode = stringCode.getBytes();
-
+                result = intToByteArray(238);
                 userID = position;
-                Intent sclINT = new Intent("userControlPoint");
+                BluetoothScaleHandler.getInstance(getApplicationContext(), userID, result);
+                registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
+                /*Intent sclINT = new Intent("userControlPoint");
                 sclINT.putExtra("ConsentCode", cnstCode);
-                sclINT.putExtra("userID", userID);
+                sclINT.putExtra("userID", userID);*/
             }
         });
     }
@@ -85,6 +88,16 @@ public class ScaleActivity extends AppCompatActivity {
             ListaUser();
         }
     };
+
+    public static byte[] intToByteArray(int a)
+    {
+        byte[] ret = new byte[4];
+        ret[0] = (byte) (a & 0xFF);
+        ret[1] = (byte) ((a >> 8) & 0xFF);
+        ret[2] = (byte) ((a >> 16) & 0xFF);
+        ret[3] = (byte) ((a >> 24) & 0xFF);
+        return ret;
+    }
 
     @Override
     protected void onDestroy() {

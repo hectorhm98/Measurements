@@ -153,12 +153,12 @@ public class BluetoothHandler {
             }
 
             //Turn on notifications for Scale
-            if(peripheral.getService(USER_DATA_SERVICE_UUID) != null){
+            /*if(peripheral.getService(USER_DATA_SERVICE_UUID) != null){
                 peripheral.setNotify(peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID), true);
                 BluetoothGattCharacteristic userControlPointWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID,USER_CONTROL_POINT_CHARACTERISTIC_UUID);
-                byte[] value = new byte[]{(byte) 0x02, 0X01/*USER INDEX*/, 0x00, 0X00};
+                byte[] value = new byte[]{(byte) 0x02, 0X01/*USER INDEX*"/, 0x00, 0X00};
                 peripheral.writeCharacteristic(userControlPointWrite, value, WRITE_TYPE_DEFAULT);
-            }
+            }*/
             Log.d("DEBUG:", peripheral.getName());
             if(peripheral.getService(SCALE_CUSTOM_SERVICE_UUID) != null) {
 
@@ -372,10 +372,6 @@ public class BluetoothHandler {
     }
 
 
-    public static synchronized BluetoothHandler SiguientePaso(Context context) {
-            instance = new BluetoothHandler(context.getApplicationContext());
-            return instance;
-    }
 
 
     private BluetoothHandler(Context context) {

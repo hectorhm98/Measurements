@@ -55,6 +55,9 @@ public class BluetoothScaleHandler {
     private static BluetoothScaleHandler instance = null;
     private Context context;
     private Handler handler = new Handler();
+    private int UserIndex = -1;
+    private byte[] ConsentHex = new byte[4];
+    private int month = -1;
 
     private Intent scaleINT = new Intent("ScaleMeasurement");
     private boolean tens = false;
@@ -74,19 +77,19 @@ public class BluetoothScaleHandler {
             if (peripheral.getService(USER_DATA_SERVICE_UUID) != null) {
                 peripheral.setNotify(peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID), true);
                 BluetoothGattCharacteristic userControlPointWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID);
-                byte[] value = new byte[]{(byte) 0x02, 0X01/*USER INDEX*/, 0x00, 0X00}; //CONSENT CODE
+                byte[] value = new byte[]{(byte) 0x02, (byte) UserIndex, ConsentHex[0], ConsentHex[1]}; //CONSENT CODE
                 peripheral.writeCharacteristic(userControlPointWrite, value, WRITE_TYPE_DEFAULT);
             }
             Log.d("DEBUG:", peripheral.getName());
             if (peripheral.getService(SCALE_CUSTOM_SERVICE_UUID) != null) {
 
                 peripheral.setNotify(peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, USER_LIST_UUID), true);
-                BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
+                /*BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
                 BluetoothGattCharacteristic userListWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, USER_LIST_UUID);
                 byte[] value = new byte[]{0x00};
                 peripheral.writeCharacteristic(takeMeasurementWrite, value, WRITE_TYPE_DEFAULT);
                 peripheral.writeCharacteristic(userListWrite, value, WRITE_TYPE_DEFAULT);
-                Log.d("Scale", "He escrito");
+                Log.d("Scale", "He escrito");*/
 
             }
 
@@ -113,6 +116,7 @@ public class BluetoothScaleHandler {
             }
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         public void onCharacteristicWrite(BluetoothPeripheral peripheral, byte[] value, BluetoothGattCharacteristic characteristic, int status) {
             if (status == GATT_SUCCESS) {
@@ -129,12 +133,7 @@ public class BluetoothScaleHandler {
             UUID characteristicUUID = characteristic.getUuid();
             BluetoothBytesParser parser = new BluetoothBytesParser(value);
 
-            if (characteristicUUID.equals(USER_LIST_UUID)) {
-                Log.d("Scale", "Paso");
-                ScaleMeasurement measurement = new ScaleMeasurement(value, 0);
-                scaleINT.putExtra("ScaleMeasurement0", measurement);
-                context.sendBroadcast(scaleINT);
-            } else if (characteristicUUID.equals(USER_CONTROL_POINT_CHARACTERISTIC_UUID)) {
+            if (characteristicUUID.equals(USER_CONTROL_POINT_CHARACTERISTIC_UUID)) {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 1);
                 scaleINT.putExtra("ScaleMeasurement1", measurement);
                 /*context.sendBroadcast(scaleINT);
@@ -200,26 +199,22 @@ public class BluetoothScaleHandler {
             }
         };
 
-        public static synchronized BluetoothScaleHandler getInstance(Context context) {
+        public static synchronized BluetoothScaleHandler getInstance(Context context, int UserI, byte[] ConsentHex) {
             if (instance == null) {
-                instance = new BluetoothScaleHandler(context.getApplicationContext());
+                instance = new BluetoothScaleHandler(context.getApplicationContext(), UserI, ConsentHex);
             }
             return instance;
         }
 
 
-        public static synchronized BluetoothScaleHandler SiguientePaso(Context context) {
-            instance = new BluetoothScaleHandler(context.getApplicationContext());
-            return instance;
-        }
 
 
-        private BluetoothScaleHandler(Context context) {
+        private BluetoothScaleHandler(Context context, int UserI, byte[] consentHex) {
             this.context = context;
-
+            this.UserIndex  = UserI;
+            this.ConsentHex = consentHex;
             // Create BluetoothCentral
             central = new BluetoothCentral(context, bluetoothCentralCallback, new Handler());
-
             // Scan for peripherals with a certain service UUIDs
             central.startPairingPopupHack();
             central.scanForPeripheralsWithServices(new UUID[]{USER_DATA_SERVICE_UUID, WEIGHT_SERVICE_UUID});
