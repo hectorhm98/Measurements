@@ -107,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
                 measurementValue3.setText("Scaning");
                 BluetoothHandler.getInstance(getApplicationContext());
                 registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
+                Intent intent = new Intent(MainActivity.this, ScaleActivity.class);
+                startActivity(intent);
             }
         });
     }

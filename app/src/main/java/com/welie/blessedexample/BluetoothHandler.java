@@ -3,8 +3,10 @@ package com.welie.blessedexample;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.le.ScanResult;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.util.Log;
 
@@ -16,6 +18,7 @@ import com.welie.blessed.BluetoothPeripheralCallback;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 
 import timber.log.Timber;
@@ -43,6 +46,7 @@ public class BluetoothHandler {
 
     //UUIDs for the Scale
     private static final UUID SCALE_CUSTOM_SERVICE_UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb"); //CUSTOM SERVICE
+    private static final UUID USER_LIST_UUID = UUID.fromString("0000fff2-0000-1000-8000-00805f9b34fb");
     private static final UUID TAKE_MEASUREMENT_UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb");
     private static final UUID WEIGHT_SERVICE_UUID = UUID.fromString("0000181D-0000-1000-8000-00805f9b34fb"); //WEIGHT SERVICE
     private static final UUID WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A9D-0000-1000-8000-00805f9b34fb");
@@ -148,15 +152,19 @@ public class BluetoothHandler {
             if(peripheral.getService(USER_DATA_SERVICE_UUID) != null){
                 peripheral.setNotify(peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID), true);
                 BluetoothGattCharacteristic userControlPointWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID,USER_CONTROL_POINT_CHARACTERISTIC_UUID);
-                byte[] value = new byte[]{(byte) 0x02, 0X01, 0x00, 0X00}; //CONSENT CODE
+                byte[] value = new byte[]{(byte) 0x02, 0X01/*USER INDEX*/, 0x00, 0X00};
                 peripheral.writeCharacteristic(userControlPointWrite, value, WRITE_TYPE_DEFAULT);
             }
             Log.d("DEBUG:", peripheral.getName());
             if(peripheral.getService(SCALE_CUSTOM_SERVICE_UUID) != null) {
-                Log.d("DEBUG:", "SCALE");
+
+
                 BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
+                BluetoothGattCharacteristic userListWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, USER_LIST_UUID);
                 byte[] value = new byte[] {0x00};
                 peripheral.writeCharacteristic(takeMeasurementWrite, value, WRITE_TYPE_DEFAULT);
+                peripheral.writeCharacteristic(userListWrite, value, WRITE_TYPE_DEFAULT);
+
             }
 
             if(peripheral.getService(WEIGHT_SERVICE_UUID) != null){
@@ -239,7 +247,11 @@ public class BluetoothHandler {
                 }
                 POMStatus = true;
             }
-
+            else if(characteristicUUID.equals(USER_LIST_UUID)){
+                ScaleMeasurement measurement = new ScaleMeasurement(value, 0);
+                scaleINT.putExtra("ScaleMeasurement0", measurement);
+                context.sendBroadcast(scaleINT);
+            }
             else if(characteristicUUID.equals(USER_CONTROL_POINT_CHARACTERISTIC_UUID)){
                 ScaleMeasurement measurement = new ScaleMeasurement(value,1);
                 scaleINT.putExtra("ScaleMeasurement1", measurement);
@@ -361,4 +373,5 @@ public class BluetoothHandler {
         central.startPairingPopupHack();
         central.scanForPeripheralsWithServices(new UUID[]{BLP_SERVICE_UUID, POM_SERVICE_UUID, USER_DATA_SERVICE_UUID, WEIGHT_SERVICE_UUID});
     }
+
 }

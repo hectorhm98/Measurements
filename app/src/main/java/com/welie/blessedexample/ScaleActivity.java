@@ -25,7 +25,9 @@ public class ScaleActivity extends AppCompatActivity {
     private ArrayAdapter<String> arrayAdapter;
     private EditText consentCode;
     private String stringCode;
-    private byte[] cnstCode;
+    private byte cnstCode;
+    private int userID;
+    byte[] result = new byte[4];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +35,8 @@ public class ScaleActivity extends AppCompatActivity {
         setContentView(R.layout.activity_scale);
 
         userList = (ListView) findViewById(R.id.userList);
-        consentCode = (EditText) findViewById(R.id.cnstCode);
         BluetoothHandler.getInstance(getApplicationContext());
-        registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement0"));
+        registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
         users = new ArrayList<String>();
         arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, users);
         userList.setAdapter(arrayAdapter);
@@ -43,11 +44,19 @@ public class ScaleActivity extends AppCompatActivity {
         userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                consentCode = (EditText) findViewById(R.id.cnstCode);
                 stringCode = Integer.toHexString(Integer.parseInt(consentCode.getText().toString()));
                 cnstCode = stringCode.getBytes();
 
+                userID = position;
+                Intent sclINT = new Intent("userControlPoint");
+                sclINT.putExtra("ConsentCode", cnstCode);
+                sclINT.putExtra("userID", userID);
             }
         });
+    }
+    private int toHexInt(int x){
+        
     }
 
     private final BroadcastReceiver scaleDataReceiver = new BroadcastReceiver() {
@@ -63,4 +72,5 @@ public class ScaleActivity extends AppCompatActivity {
         super.onDestroy();
         unregisterReceiver(scaleDataReceiver);
     }
+
 }
