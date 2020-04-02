@@ -135,6 +135,13 @@ public class BluetoothScaleHandler {
 
             if (characteristicUUID.equals(USER_CONTROL_POINT_CHARACTERISTIC_UUID)) {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 1);
+                if(measurement.responseValue == 0x01){
+                    BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
+                    byte[] valus = new byte[]{0x00};
+                    peripheral.writeCharacteristic(takeMeasurementWrite, valus, WRITE_TYPE_DEFAULT);
+                }else{
+                    return; //Something went wrong
+                }
                 scaleINT.putExtra("ScaleMeasurement1", measurement);
                 /*context.sendBroadcast(scaleINT);
                 Timber.d("%s", measurement);*/
@@ -214,6 +221,7 @@ public class BluetoothScaleHandler {
             this.UserIndex  = UserI;
             this.ConsentHex = consentHex;
             // Create BluetoothCentral
+            Log.d("Scale", "bluetoothScale");
             central = new BluetoothCentral(context, bluetoothCentralCallback, new Handler());
             // Scan for peripherals with a certain service UUIDs
             central.startPairingPopupHack();

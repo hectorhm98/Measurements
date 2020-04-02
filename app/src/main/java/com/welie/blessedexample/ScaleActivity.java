@@ -50,7 +50,7 @@ public class ScaleActivity extends AppCompatActivity {
                 stringCode = Integer.toHexString(3333);
                 cnstCode = stringCode.getBytes();
                 byte p[] = intToByteArray(4);
-                userID = position;
+                userID = position+1;
                 Intent sclINT = new Intent("userControlPoint");
                 sclINT.putExtra("ConsentCode", cnstCode);
                 sclINT.putExtra("userID", userID);
@@ -69,15 +69,26 @@ public class ScaleActivity extends AppCompatActivity {
                 stringCode = Integer.toHexString(3333);
                 cnstCode = stringCode.getBytes();
                 result = intToByteArray(238);
-                userID = position;
+                userID = position+1;
+                bh.Disconect();
                 BluetoothScaleHandler.getInstance(getApplicationContext(), userID, result);
-                registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
+                registerReceiver(scaleDataReceiver2, new IntentFilter("ScaleMeasurement"));
                 /*Intent sclINT = new Intent("userControlPoint");
                 sclINT.putExtra("ConsentCode", cnstCode);
                 sclINT.putExtra("userID", userID);*/
             }
         });
     }
+
+    private final BroadcastReceiver scaleDataReceiver2 = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ScaleMeasurement measurement = (ScaleMeasurement) intent.getSerializableExtra("ScaleMeasurement0");//cambiar el name intent
+            users.add(String.format(Locale.ENGLISH, "USER ID: %d. Date: %s Height: %d Gender %s",measurement.userIndex, measurement.birth, measurement.height1, measurement.sgender));
+            Log.d("Scale", "Users" + users);
+            ListaUser();
+        }
+    };
 
     private final BroadcastReceiver scaleDataReceiver = new BroadcastReceiver() {
         @Override

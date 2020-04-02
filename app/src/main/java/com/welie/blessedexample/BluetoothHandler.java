@@ -83,6 +83,7 @@ public class BluetoothHandler {
     private BluetoothCentral central;
     private static BluetoothHandler instance = null;
     private Context context;
+    private BluetoothPeripheral periph = null;
     private Handler handler = new Handler();
     private int currentTimeCounter = 0;
     private int packetNumber = 0;
@@ -325,6 +326,7 @@ public class BluetoothHandler {
         @Override
         public void onConnectedPeripheral(BluetoothPeripheral peripheral) {
             Timber.i("connected to '%s'", peripheral.getName());
+            periph = peripheral;
         }
 
         @Override
@@ -337,6 +339,7 @@ public class BluetoothHandler {
             Timber.i("disconnected '%s' with status %d", peripheral.getName(), status);
 
             // Reconnect to this device when it becomes available again
+            periph = null;
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -371,7 +374,12 @@ public class BluetoothHandler {
         return instance;
     }
 
-
+    public synchronized void Disconect() {
+        if(periph != null) {
+            central.cancelConnection(periph);
+            central.close();
+        }
+    }
 
 
     private BluetoothHandler(Context context) {

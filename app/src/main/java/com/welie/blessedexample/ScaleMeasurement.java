@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
 
+import static android.bluetooth.BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT;
 import static com.welie.blessed.BluetoothPeripheral.GATT_SUCCESS;
 
 
@@ -33,7 +34,9 @@ public class ScaleMeasurement implements Serializable {
     public int responseOPCode;
     public int requestOPCode;
     public int responseValue;
-    public int responseParameter;
+    public BluetoothPeripheral peripheral;
+    private static final UUID SCALE_CUSTOM_SERVICE_UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb"); //CUSTOM SERVICE
+    private static final UUID TAKE_MEASUREMENT_UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb");
 
     public int flags;
     public float weight;
@@ -48,6 +51,14 @@ public class ScaleMeasurement implements Serializable {
     public float softLeanMass;
     public float bodyWaterMass;
     public float impedance;
+
+    public void setPeripheral(BluetoothPeripheral peripheral) {
+        this.peripheral = peripheral;
+    }
+
+    public ScaleMeasurement() {
+
+    }
 
     public ScaleMeasurement(byte[] value, int step) {
         BluetoothBytesParser parser = new BluetoothBytesParser(value);
@@ -76,11 +87,13 @@ public class ScaleMeasurement implements Serializable {
                 responseOPCode = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
                 requestOPCode = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
                 responseValue = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
-                if(responseValue == 0x01){
-                    responseParameter = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT8);
+                /*if(responseValue == 0x01){
+                    BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
+                    byte[] valus = new byte[]{0x00};
+                    peripheral.writeCharacteristic(takeMeasurementWrite, valus, WRITE_TYPE_DEFAULT);
                 }else{
                     return; //Something went wrong
-                }
+                }*/
 
                 break;
 
