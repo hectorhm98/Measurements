@@ -168,7 +168,7 @@ public class BluetoothHandler {
                 BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
                 BluetoothGattCharacteristic userListWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, USER_LIST_UUID);
                 byte[] value = new byte[] {0x00};
-                peripheral.writeCharacteristic(takeMeasurementWrite, value, WRITE_TYPE_DEFAULT);
+                //peripheral.writeCharacteristic(takeMeasurementWrite, value, WRITE_TYPE_DEFAULT);
                 peripheral.writeCharacteristic(userListWrite, value, WRITE_TYPE_DEFAULT);
                 Log.d("Scale", "He escrito");
 
@@ -206,6 +206,7 @@ public class BluetoothHandler {
             }
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         public void onCharacteristicWrite(BluetoothPeripheral peripheral, byte[] value, BluetoothGattCharacteristic characteristic, int status) {
             if( status == GATT_SUCCESS) {

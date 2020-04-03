@@ -51,6 +51,7 @@ public class BluetoothScaleHandler {
     private static final UUID DATE_OF_BIRTH_CHARACTERISTIC_UUID = UUID.fromString("00002A85-0000-1000-8000-00805f9b34fb");
     private static final UUID GENDER_CHARACTERISTIC_UUID = UUID.fromString("00002A8C-0000-1000-8000-00805f9b34fb");
     private static final UUID HEIGHT_CHARACTERISTIC_UUID = UUID.fromString("00002A8E-0000-1000-8000-00805f9b34fb");
+    private static final UUID INCREMENT_CHANGE_CHARACTERISTIC_UUID = UUID.fromString("00002A99-0000-1000-8000-00805f9b34fb");
     private static final UUID USER_CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002A9F-0000-1000-8000-00805f9b34fb");
 
 
@@ -165,7 +166,13 @@ public class BluetoothScaleHandler {
                 scaleINT.putExtra("ScaleMeasurement1", measurement);
                 /*context.sendBroadcast(scaleINT);
                 Timber.d("%s", measurement);*/
-            } else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)) {
+            } else if(characteristicUUID.equals(INCREMENT_CHANGE_CHARACTERISTIC_UUID)){
+                ScaleMeasurement measurement = new ScaleMeasurement(value, 4);
+                BluetoothGattCharacteristic incrementChange = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, INCREMENT_CHANGE_CHARACTERISTIC_UUID);
+                byte[] increment = measurement.byteIncrement;
+                peripheral.writeCharacteristic(incrementChange, increment, WRITE_TYPE_DEFAULT);
+            }
+            else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 2);
                 scaleINT.putExtra("ScaleMeasurement2", measurement);
                 /*context.sendBroadcast(scaleINT);
