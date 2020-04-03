@@ -34,6 +34,7 @@ import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT16;
 import static com.welie.blessed.BluetoothBytesParser.FORMAT_UINT8;
 import static com.welie.blessed.BluetoothBytesParser.bytes2String;
 import static com.welie.blessed.BluetoothPeripheral.GATT_SUCCESS;
+import static com.welie.blessed.BluetoothPeripheral.STATE_DISCONNECTED;
 import static java.lang.Math.abs;
 
 public class BluetoothHandler {
@@ -343,7 +344,7 @@ public class BluetoothHandler {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    central.autoConnectPeripheral(peripheral, peripheralCallback);
+                    //central.autoConnectPeripheral(peripheral, peripheralCallback);
                 }
             }, 5000);
         }
@@ -377,6 +378,7 @@ public class BluetoothHandler {
     public synchronized void Disconect() {
         if(periph != null) {
             central.cancelConnection(periph);
+            central.stopScan();
             central.close();
         }
     }
