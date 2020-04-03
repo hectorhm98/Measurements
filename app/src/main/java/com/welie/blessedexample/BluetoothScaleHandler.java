@@ -41,13 +41,18 @@ public class BluetoothScaleHandler {
     //UUIDs for the Scale
     private static final UUID SCALE_CUSTOM_SERVICE_UUID = UUID.fromString("0000fff0-0000-1000-8000-00805f9b34fb"); //CUSTOM SERVICE
     private static final UUID USER_LIST_UUID = UUID.fromString("0000fff2-0000-1000-8000-00805f9b34fb");
+    private static final UUID ACTIVITY_LEVEL_CHARACTERISTIC_UUID = UUID.fromString("0000fff3-0000-1000-8000-00805f9b34fb");
     private static final UUID TAKE_MEASUREMENT_UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb");
     private static final UUID WEIGHT_SERVICE_UUID = UUID.fromString("0000181D-0000-1000-8000-00805f9b34fb"); //WEIGHT SERVICE
     private static final UUID WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A9D-0000-1000-8000-00805f9b34fb");
     private static final UUID BODY_SERVICE_UUID = UUID.fromString("0000181B-0000-1000-8000-00805f9b34fb"); //BODY SERVICE
     private static final UUID BODY_MEASUREMENT_CHARACTERISTIC_UUID = UUID.fromString("00002A9C-0000-1000-8000-00805f9b34fb");
     private static final UUID USER_DATA_SERVICE_UUID = UUID.fromString("0000181c-0000-1000-8000-00805f9b34fb"); //USER DATA SERVICE
+    private static final UUID DATE_OF_BIRTH_CHARACTERISTIC_UUID = UUID.fromString("00002A85-0000-1000-8000-00805f9b34fb");
+    private static final UUID GENDER_CHARACTERISTIC_UUID = UUID.fromString("00002A8C-0000-1000-8000-00805f9b34fb");
+    private static final UUID HEIGHT_CHARACTERISTIC_UUID = UUID.fromString("00002A8E-0000-1000-8000-00805f9b34fb");
     private static final UUID USER_CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002A9F-0000-1000-8000-00805f9b34fb");
+
 
 
     // Local variables
@@ -137,7 +142,22 @@ public class BluetoothScaleHandler {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 1);
                 if(measurement.responseValue == 0x01){
                     BluetoothGattCharacteristic takeMeasurementWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, TAKE_MEASUREMENT_UUID);
+                    BluetoothGattCharacteristic birthDateWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, DATE_OF_BIRTH_CHARACTERISTIC_UUID);
+                    BluetoothGattCharacteristic genderWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, GENDER_CHARACTERISTIC_UUID);
+                    BluetoothGattCharacteristic heightWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, HEIGHT_CHARACTERISTIC_UUID);
+                    BluetoothGattCharacteristic activityLevelWrite = peripheral.getCharacteristic(SCALE_CUSTOM_SERVICE_UUID, ACTIVITY_LEVEL_CHARACTERISTIC_UUID);
+                    /*Supongo que aqui es un buen sitio donde escribir los datos del usuario
+                    Estan puestos los valores por defecto
+                     */
+                    byte[] birth = new byte[]{(byte)0xC7,0x07,0x0A,0x01}; //Birthdate
+                    byte[] gender = new byte[]{0x01};//Gender
+                    byte[] height = new byte[]{(byte)0xA5};
+                    byte[] activity = new byte[]{0x03};
                     byte[] valus = new byte[]{0x00};
+                    peripheral.writeCharacteristic(birthDateWrite, birth, WRITE_TYPE_DEFAULT);
+                    peripheral.writeCharacteristic(genderWrite, gender, WRITE_TYPE_DEFAULT);
+                    peripheral.writeCharacteristic(heightWrite, height, WRITE_TYPE_DEFAULT);
+                    peripheral.writeCharacteristic(activityLevelWrite, activity, WRITE_TYPE_DEFAULT);
                     peripheral.writeCharacteristic(takeMeasurementWrite, valus, WRITE_TYPE_DEFAULT);
                 }else{
                     return; //Something went wrong
