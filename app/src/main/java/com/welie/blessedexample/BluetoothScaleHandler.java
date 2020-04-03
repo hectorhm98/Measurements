@@ -60,11 +60,12 @@ public class BluetoothScaleHandler {
     private static BluetoothScaleHandler instance = null;
     private Context context;
     private Handler handler = new Handler();
+    BluetoothPeripheral periph = null;
     private int UserIndex = -1;
     private byte[] ConsentHex = new byte[4];
     private int month = -1;
 
-    private Intent scaleINT = new Intent("ScaleMeasurement");
+    private Intent scaleINT = new Intent("ScaleMeasurement1");
     private boolean tens = false;
 
     // Callback for peripherals
@@ -83,6 +84,7 @@ public class BluetoothScaleHandler {
                 peripheral.setNotify(peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID), true);
                 BluetoothGattCharacteristic userControlPointWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID, USER_CONTROL_POINT_CHARACTERISTIC_UUID);
                 byte[] value = new byte[]{(byte) 0x02, (byte) UserIndex, ConsentHex[0], ConsentHex[1]}; //CONSENT CODE
+                Log.d("Enviando:", "0x02" + UserIndex +ConsentHex + ConsentHex);
                 peripheral.writeCharacteristic(userControlPointWrite, value, WRITE_TYPE_DEFAULT);
             }
             Log.d("DEBUG:", peripheral.getName());
@@ -154,12 +156,14 @@ public class BluetoothScaleHandler {
                     byte[] height = new byte[]{(byte)0xA5};
                     byte[] activity = new byte[]{0x03};
                     byte[] valus = new byte[]{0x00};
+                    Log.d("Escribiendo:", "Valores varios");
                     peripheral.writeCharacteristic(birthDateWrite, birth, WRITE_TYPE_DEFAULT);
                     peripheral.writeCharacteristic(genderWrite, gender, WRITE_TYPE_DEFAULT);
                     peripheral.writeCharacteristic(heightWrite, height, WRITE_TYPE_DEFAULT);
                     peripheral.writeCharacteristic(activityLevelWrite, activity, WRITE_TYPE_DEFAULT);
                     peripheral.writeCharacteristic(takeMeasurementWrite, valus, WRITE_TYPE_DEFAULT);
                 }else{
+                    Log.d("Scale", "Error ConsentCode");
                     return; //Something went wrong
                 }
                 scaleINT.putExtra("ScaleMeasurement1", measurement);
@@ -172,7 +176,7 @@ public class BluetoothScaleHandler {
                 Timber.d("%s", measurement);*/
             } else if (characteristicUUID.equals(BODY_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 3);
-                scaleINT.putExtra("ScaleMeasurement", measurement);
+                scaleINT.putExtra("ScaleMeasurement3", measurement);
                 context.sendBroadcast(scaleINT);
                 Timber.d("%s", measurement);
             }
@@ -187,6 +191,7 @@ public class BluetoothScaleHandler {
             @Override
             public void onConnectedPeripheral(BluetoothPeripheral peripheral) {
                 Timber.i("connected to '%s'", peripheral.getName());
+                periph = peripheral;
             }
 
             @Override
@@ -199,10 +204,11 @@ public class BluetoothScaleHandler {
                 Timber.i("disconnected '%s' with status %d", peripheral.getName(), status);
 
                 // Reconnect to this device when it becomes available again
+                periph = null;
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        central.autoConnectPeripheral(peripheral, peripheralCallback);
+                        //central.autoConnectPeripheral(peripheral, peripheralCallback);
                     }
                 }, 5000);
             }
@@ -234,6 +240,13 @@ public class BluetoothScaleHandler {
         }
 
 
+        public synchronized void Disconect() {
+            if(periph != null) {
+                central.cancelConnection(periph);
+                central.stopScan();
+                central.close();
+            }
+        }
 
 
         private BluetoothScaleHandler(Context context, int UserI, byte[] consentHex) {
