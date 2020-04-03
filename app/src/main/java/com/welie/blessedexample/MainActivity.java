@@ -70,9 +70,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 measurementValue = (TextView) findViewById(R.id.bloodPressureValue);
-                measurementValue.setText("Scaning");
-                measurementValue2.setText("Stoped");
-                measurementValue3.setText("Stoped");
+                measurementValue.setText("Scanning");
+                measurementValue2.setText("Stopped");
+                measurementValue3.setText("Stopped");
                 initBluetoothHandler();
                 unregister();
                 BluetoothHandler.getInstance(getApplicationContext());
@@ -86,9 +86,9 @@ public class MainActivity extends AppCompatActivity {
                 measurementValue2 = (TextView) findViewById(R.id.pulseoximeterValue);
                 initBluetoothHandler();
                 unregister();
-                measurementValue.setText("Stoped");
-                measurementValue2.setText("Scaning");
-                measurementValue3.setText("Stoped");
+                measurementValue.setText("Stopped");
+                measurementValue2.setText("Scanning");
+                measurementValue3.setText("Stopped");
                 BluetoothHandler.getInstance(getApplicationContext());
                 registerReceiver(pulseOximeterDataReceiver, new IntentFilter("OximeterMeasurement"));
             }
@@ -102,9 +102,9 @@ public class MainActivity extends AppCompatActivity {
                 unregister();
                 String a = String.format("%04X", 3333);
                 Log.d("IntToHexInt", a);
-                measurementValue.setText("Stoped");
-                measurementValue2.setText("Stoped");
-                measurementValue3.setText("Scaning");
+                measurementValue.setText("Stopped");
+                measurementValue2.setText("Stopped");
+                measurementValue3.setText("Scanning");
                 //BluetoothHandler.getInstance(getApplicationContext());
                 //registerReceiver(scaleDataReceiver, new IntentFilter("ScaleMeasurement"));
                 Intent intent = new Intent(MainActivity.this, ScaleActivity.class);

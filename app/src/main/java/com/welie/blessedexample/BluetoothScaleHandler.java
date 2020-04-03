@@ -51,6 +51,7 @@ public class BluetoothScaleHandler {
     private static final UUID DATE_OF_BIRTH_CHARACTERISTIC_UUID = UUID.fromString("00002A85-0000-1000-8000-00805f9b34fb");
     private static final UUID GENDER_CHARACTERISTIC_UUID = UUID.fromString("00002A8C-0000-1000-8000-00805f9b34fb");
     private static final UUID HEIGHT_CHARACTERISTIC_UUID = UUID.fromString("00002A8E-0000-1000-8000-00805f9b34fb");
+    private static final UUID INCREMENT_CHANGED_CHARACTERISTIC_UUID = UUID.fromString("00002A99-0000-1000-8000-00805f9b34fb");
     private static final UUID USER_CONTROL_POINT_CHARACTERISTIC_UUID = UUID.fromString("00002A9F-0000-1000-8000-00805f9b34fb");
 
 
@@ -149,11 +150,11 @@ public class BluetoothScaleHandler {
                     /*Supongo que aqui es un buen sitio donde escribir los datos del usuario
                     Estan puestos los valores por defecto
                      */
-                    byte[] birth = new byte[]{(byte)0xC7,0x07,0x0A,0x01}; //Birthdate
-                    byte[] gender = new byte[]{0x01};//Gender
-                    byte[] height = new byte[]{(byte)0xA5};
-                    byte[] activity = new byte[]{0x03};
-                    byte[] valus = new byte[]{0x00};
+                    byte[] birth = new byte[]{(byte)0xC7,0x07,0x0A,0x01}; //1991-10-01
+                    byte[] gender = new byte[]{0x01};//Female
+                    byte[] height = new byte[]{(byte)0xA5};//165 cm
+                    byte[] activity = new byte[]{0x03};//Activity Level 3
+                    byte[] valus = new byte[]{0x00}; //Trigger measurement
                     peripheral.writeCharacteristic(birthDateWrite, birth, WRITE_TYPE_DEFAULT);
                     peripheral.writeCharacteristic(genderWrite, gender, WRITE_TYPE_DEFAULT);
                     peripheral.writeCharacteristic(heightWrite, height, WRITE_TYPE_DEFAULT);
@@ -165,7 +166,14 @@ public class BluetoothScaleHandler {
                 scaleINT.putExtra("ScaleMeasurement1", measurement);
                 /*context.sendBroadcast(scaleINT);
                 Timber.d("%s", measurement);*/
-            } else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)) {
+            } else if(characteristicUUID.equals(INCREMENT_CHANGED_CHARACTERISTIC_UUID)){
+                ScaleMeasurement measurement = new ScaleMeasurement(value, 4);
+                byte[] increment = measurement.byteIncrement;
+                BluetoothGattCharacteristic incrementWrite = peripheral.getCharacteristic(USER_DATA_SERVICE_UUID,INCREMENT_CHANGED_CHARACTERISTIC_UUID);
+                peripheral.writeCharacteristic(incrementWrite, increment, WRITE_TYPE_DEFAULT);
+
+            }
+            else if (characteristicUUID.equals(WEIGHT_MEASUREMENT_CHARACTERISTIC_UUID)) {
                 ScaleMeasurement measurement = new ScaleMeasurement(value, 2);
                 scaleINT.putExtra("ScaleMeasurement2", measurement);
                 /*context.sendBroadcast(scaleINT);

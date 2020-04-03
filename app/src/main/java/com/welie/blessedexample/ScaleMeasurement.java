@@ -52,6 +52,11 @@ public class ScaleMeasurement implements Serializable {
     public float bodyWaterMass;
     public float impedance;
 
+    public int rincrement;
+    public int increment;
+    public byte[] byteIncrement;
+
+
     public void setPeripheral(BluetoothPeripheral peripheral) {
         this.peripheral = peripheral;
     }
@@ -118,6 +123,11 @@ public class ScaleMeasurement implements Serializable {
                 bodyWaterMass = parser.getFloatValue(BluetoothBytesParser.FORMAT_SFLOAT,ByteOrder.LITTLE_ENDIAN);
                 impedance = parser.getFloatValue(BluetoothBytesParser.FORMAT_SFLOAT, ByteOrder.LITTLE_ENDIAN);
 
+                break;
+            case(4):
+                rincrement = parser.getIntValue(BluetoothBytesParser.FORMAT_UINT32, ByteOrder.LITTLE_ENDIAN);
+                increment = rincrement + 1;
+                byteIncrement = ScaleActivity.intToByteArray(increment);
                 break;
         }
     }
